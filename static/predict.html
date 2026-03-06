@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChurnGuard — Customer Risk Assessment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f1f5f9; }
+    .card { background: #1e293b; border: 1px solid #334155; }
+    select, input[type=number] {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: #f1f5f9;
+      border-radius: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      font-size: 0.875rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input[type=number]:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.25); }
+    select:disabled { opacity: 0.4; cursor: not-allowed; }
+    select option { background: #1e293b; }
+    label { display: block; font-size: 0.875rem; font-weight: 500; color: #94a3b8; margin-bottom: 0.375rem; }
+    #gaugeFill { transition: stroke-dashoffset 0.9s cubic-bezier(0.4,0,0.2,1), stroke 0.4s ease; }
+    .fade-in { animation: fadeIn 0.5s ease forwards; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    input[type=number]::-webkit-inner-spin-button { opacity: 1; filter: invert(1); }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Navbar -->
+  <nav style="background:#1e293b; border-bottom:1px solid #334155;" class="sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="flex items-center gap-2.5 hover:opacity-80 transition">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <span class="text-lg font-bold text-white tracking-tight">ChurnGuard</span>
+      </a>
+      <a href="/" style="color:#64748b;" class="text-sm font-medium hover:text-indigo-400 transition">← Back to home</a>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <div style="background:#1e293b; border-bottom:1px solid #334155;" class="py-8 px-6">
+    <div class="max-w-5xl mx-auto">
+      <h1 class="text-2xl font-bold text-white">Customer Risk Assessment</h1>
+      <p style="color:#64748b;" class="mt-1 text-sm">Fill in the customer profile to get their churn risk and personalised retention actions.</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <main class="max-w-5xl mx-auto px-6 py-10">
+    <form id="predictForm" class="space-y-6" novalidate>
+
+      <!-- Personal Info -->
+      <div class="card rounded-2xl p-7">
+        <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-5">Personal Info</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div><label>Gender</label>
+            <select id="gender"><option>Male</option><option>Female</option></select></div>
+          <div><label>Senior Citizen</label>
+            <select id="seniorCitizen"><option value="0">No</option><option value="1">Yes</option></select></div>
+          <div><label>Partner</label>
+            <select id="partner"><option>No</option><option>Yes</option></select></div>
+          <div><label>Dependents</label>
+            <select id="dependents"><option>No</option><option>Yes</option></select></div>
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="card rounded-2xl p-7">
+        <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-5">Account Info</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label>Tenure <span style="color:#475569; font-weight:400;">(months)</span></label>
+            <input type="number" id="tenure" min="0" max="72" value="12" /></div>
+          <div><label>Contract Type</label>
+            <select id="contract">
+              <option>Month-to-month</option>
+              <option>One year</option>
+              <option>Two year</option>
+            </select></div>
+          <div><label>Paperless Billing</label>
+            <select id="paperlessBilling"><option>No</option><option>Yes</option></select></div>
+          <div><label>Payment Method</label>
+            <select id="paymentMethod">
+              <option>Electronic check</option>
+              <option>Mailed check</option>
+              <option>Bank transfer (automatic)</option>
+              <option>Credit card (automatic)</option>
+            </select></div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="card rounded-2xl p-7">
+        <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-5">Services</p>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div><label>Phone Service</label>
+            <select id="phoneService"><option>Yes</option><option>No</option></select></div>
+          <div><label>Multiple Lines</label>
+            <select id="multipleLines"><option>No</option><option>Yes</option><option>No phone service</option></select></div>
+          <div><label>Internet Service</label>
+            <select id="internetService"><option>DSL</option><option>Fiber optic</option><option>No</option></select></div>
+          <div><label>Online Security</label>
+            <select id="onlineSecurity"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div><label>Online Backup</label>
+            <select id="onlineBackup"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div><label>Device Protection</label>
+            <select id="deviceProtection"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div><label>Tech Support</label>
+            <select id="techSupport"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div><label>Streaming TV</label>
+            <select id="streamingTV"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+          <div><label>Streaming Movies</label>
+            <select id="streamingMovies"><option>No</option><option>Yes</option><option>No internet service</option></select></div>
+        </div>
+      </div>
+
+      <!-- Billing -->
+      <div class="card rounded-2xl p-7">
+        <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-5">Billing</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div><label>Monthly Charges <span style="color:#475569; font-weight:400;">($)</span></label>
+            <input type="number" id="monthlyCharges" min="0" step="0.01" value="65.00" /></div>
+          <div><label>Total Charges <span style="color:#475569; font-weight:400;">($) — auto-calculated</span></label>
+            <input type="number" id="totalCharges" min="0" step="0.01" value="780.00" style="background:#0a1120;" /></div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="flex justify-center pt-2">
+        <button type="submit" id="submitBtn"
+          class="bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-bold px-12 py-4 rounded-xl text-base transition shadow-2xl flex items-center gap-2">
+          <span id="btnText">Analyse Customer</span>
+          <svg id="btnArrow" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+          <svg id="btnSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+        </button>
+      </div>
+
+    </form>
+
+    <!-- ── RESULTS ── -->
+    <div id="results" class="hidden mt-14 space-y-6 fade-in">
+
+      <!-- Risk banner -->
+      <div id="riskBanner" class="rounded-2xl p-6 flex flex-wrap items-center gap-5">
+        <div id="riskIcon" class="text-4xl"></div>
+        <div>
+          <p style="color:#94a3b8;" class="text-xs font-bold uppercase tracking-widest mb-0.5">Risk Level</p>
+          <p id="riskLabel" class="text-2xl font-extrabold"></p>
+        </div>
+        <div class="ml-auto text-right">
+          <p style="color:#94a3b8;" class="text-xs font-bold uppercase tracking-widest mb-0.5">Churn Probability</p>
+          <p id="probLabel" class="text-4xl font-extrabold"></p>
+        </div>
+      </div>
+
+      <!-- Gauge + Drivers -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div class="card rounded-2xl p-8 flex flex-col items-center">
+          <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-6">Probability Gauge</p>
+          <svg viewBox="0 0 220 130" class="w-full max-w-xs">
+            <path d="M 22 118 A 88 88 0 0 1 198 118"
+              fill="none" stroke="#1e293b" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 22 118 A 88 88 0 0 1 198 118"
+              fill="none" stroke="#334155" stroke-width="18" stroke-linecap="round"/>
+            <path id="gaugeFill" d="M 22 118 A 88 88 0 0 1 198 118"
+              fill="none" stroke="#6366f1" stroke-width="18" stroke-linecap="round"
+              stroke-dasharray="276.5" stroke-dashoffset="276.5"/>
+            <text x="16"  y="132" font-size="10" fill="#475569" text-anchor="middle">0%</text>
+            <text x="110" y="22"  font-size="10" fill="#475569" text-anchor="middle">50%</text>
+            <text x="204" y="132" font-size="10" fill="#475569" text-anchor="middle">100%</text>
+            <text id="gaugeText" x="110" y="100" text-anchor="middle" font-size="34" font-weight="bold" fill="#f1f5f9">—</text>
+            <text x="110" y="120" text-anchor="middle" font-size="11" fill="#475569">Churn Probability</text>
+          </svg>
+        </div>
+
+        <div class="card rounded-2xl p-7">
+          <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-5">Risk Drivers Identified</p>
+          <ul id="driversList" class="space-y-3"></ul>
+        </div>
+
+      </div>
+
+      <!-- Recommendation cards -->
+      <div class="card rounded-2xl p-7">
+        <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-6">Recommended Retention Actions</p>
+        <div id="recommendationCards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+
+      <!-- Summary bar -->
+      <div style="background:rgba(99,102,241,0.1); border:1px solid rgba(99,102,241,0.25);" class="rounded-2xl p-5 flex items-start gap-3">
+        <svg class="w-5 h-5 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div>
+          <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Top Priority Actions</p>
+          <p id="summaryText" style="color:#c7d2fe;" class="text-sm font-medium"></p>
+        </div>
+      </div>
+
+      <!-- Reset -->
+      <div class="text-center pb-10">
+        <button onclick="resetForm()" class="text-indigo-400 hover:text-indigo-300 font-semibold text-sm hover:underline transition">
+          ← Run another prediction
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Auto-calculate TotalCharges
+    function calcTotal() {
+      const t = parseFloat(document.getElementById('tenure').value) || 0;
+      const m = parseFloat(document.getElementById('monthlyCharges').value) || 0;
+      document.getElementById('totalCharges').value = (t * m).toFixed(2);
+    }
+    document.getElementById('tenure').addEventListener('input', calcTotal);
+    document.getElementById('monthlyCharges').addEventListener('input', calcTotal);
+
+    // Disable internet-dependent fields
+    const INET_DEPS = ['onlineSecurity','onlineBackup','deviceProtection','techSupport','streamingTV','streamingMovies'];
+    document.getElementById('internetService').addEventListener('change', function () {
+      INET_DEPS.forEach(id => {
+        const el = document.getElementById(id);
+        if (this.value === 'No') { el.value = 'No internet service'; el.disabled = true; }
+        else { el.disabled = false; if (el.value === 'No internet service') el.value = 'No'; }
+      });
+    });
+
+    // Disable MultipleLines when no phone
+    document.getElementById('phoneService').addEventListener('change', function () {
+      const ml = document.getElementById('multipleLines');
+      if (this.value === 'No') { ml.value = 'No phone service'; ml.disabled = true; }
+      else { ml.disabled = false; if (ml.value === 'No phone service') ml.value = 'No'; }
+    });
+
+    // Form submit
+    document.getElementById('predictForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      setLoading(true);
+      const payload = {
+        gender:           document.getElementById('gender').value,
+        SeniorCitizen:    parseInt(document.getElementById('seniorCitizen').value),
+        Partner:          document.getElementById('partner').value,
+        Dependents:       document.getElementById('dependents').value,
+        tenure:           parseInt(document.getElementById('tenure').value),
+        PhoneService:     document.getElementById('phoneService').value,
+        MultipleLines:    document.getElementById('multipleLines').value,
+        InternetService:  document.getElementById('internetService').value,
+        OnlineSecurity:   document.getElementById('onlineSecurity').value,
+        OnlineBackup:     document.getElementById('onlineBackup').value,
+        DeviceProtection: document.getElementById('deviceProtection').value,
+        TechSupport:      document.getElementById('techSupport').value,
+        StreamingTV:      document.getElementById('streamingTV').value,
+        StreamingMovies:  document.getElementById('streamingMovies').value,
+        Contract:         document.getElementById('contract').value,
+        PaperlessBilling: document.getElementById('paperlessBilling').value,
+        PaymentMethod:    document.getElementById('paymentMethod').value,
+        MonthlyCharges:   parseFloat(document.getElementById('monthlyCharges').value),
+        TotalCharges:     parseFloat(document.getElementById('totalCharges').value),
+      };
+      try {
+        const res  = await fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        if (!res.ok) throw new Error(`API ${res.status}`);
+        renderResults(await res.json());
+      } catch (err) {
+        alert('Could not reach the API. Make sure the server is running.');
+      }
+      setLoading(false);
+    });
+
+    function renderResults(data) {
+      const prob = data.churn_probability;
+      const pct  = Math.round(prob * 100);
+      const risk = data.risk_level;
+
+      const THEME = {
+        Low:    { bg:'background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);',  text:'#10b981', gauge:'#10b981', icon:'✅' },
+        Medium: { bg:'background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);',   text:'#f59e0b', gauge:'#f59e0b', icon:'⚠️'  },
+        High:   { bg:'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);',    text:'#ef4444', gauge:'#ef4444', icon:'🔴' },
+      };
+      const t = THEME[risk];
+
+      document.getElementById('riskBanner').setAttribute('style', t.bg + 'border-radius:1rem;padding:1.5rem;display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem;');
+      document.getElementById('riskIcon').textContent = t.icon;
+      document.getElementById('riskLabel').textContent  = `${risk} Risk`;
+      document.getElementById('riskLabel').style.color  = t.text;
+      document.getElementById('probLabel').textContent  = `${pct}%`;
+      document.getElementById('probLabel').style.color  = t.text;
+
+      // Gauge
+      const fill = document.getElementById('gaugeFill');
+      fill.style.stroke = t.gauge;
+      fill.style.strokeDashoffset = 276.5 * (1 - prob);
+      document.getElementById('gaugeText').textContent  = `${pct}%`;
+      document.getElementById('gaugeText').setAttribute('fill', t.gauge);
+
+      // Drivers
+      document.getElementById('driversList').innerHTML = data.churn_drivers.map(d => `
+        <li style="display:flex;align-items:flex-start;gap:0.625rem;font-size:0.875rem;color:#94a3b8;">
+          <span style="margin-top:0.375rem;width:6px;height:6px;border-radius:50%;background:${t.gauge};flex-shrink:0;display:inline-block;"></span>${d}
+        </li>`).join('');
+
+      // Recommendation cards
+      document.getElementById('recommendationCards').innerHTML = data.recommendations.map((r, i) => `
+        <div style="border:1px solid #334155;border-radius:0.75rem;padding:1.25rem;transition:border-color 0.15s;"
+          onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#334155'">
+          <div style="font-size:0.7rem;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.375rem;">Action ${i + 1}</div>
+          <div style="font-size:0.875rem;font-weight:600;color:#f1f5f9;margin-bottom:0.25rem;">${r.cause}</div>
+          <div style="font-size:0.875rem;color:#64748b;line-height:1.5;">${r.action}</div>
+        </div>`).join('');
+
+      document.getElementById('summaryText').textContent = data.recommendation_summary;
+
+      const resultsEl = document.getElementById('results');
+      resultsEl.classList.remove('hidden');
+      resultsEl.classList.add('fade-in');
+      setTimeout(() => resultsEl.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+    }
+
+    function setLoading(on) {
+      document.getElementById('btnText').textContent = on ? 'Analysing…' : 'Analyse Customer';
+      document.getElementById('btnArrow').classList.toggle('hidden', on);
+      document.getElementById('btnSpinner').classList.toggle('hidden', !on);
+      document.getElementById('submitBtn').disabled = on;
+    }
+
+    function resetForm() {
+      document.getElementById('results').classList.add('hidden');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    }
+  </script>
+
+</body>
+</html>

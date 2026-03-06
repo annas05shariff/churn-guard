@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChurnGuard — Customer Retention Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f1f5f9; }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%); }
+    .card { background: #1e293b; border: 1px solid #334155; }
+    .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card-hover:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- Navbar -->
+  <nav style="background:#1e293b; border-bottom:1px solid #334155;" class="sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+        </div>
+        <span class="text-lg font-bold text-white tracking-tight">ChurnGuard</span>
+      </div>
+      <div class="flex items-center gap-6">
+        <a href="#how-it-works" style="color:#94a3b8;" class="text-sm font-medium hover:text-indigo-400 transition">How it works</a>
+        <a href="#powered-by"   style="color:#94a3b8;" class="text-sm font-medium hover:text-indigo-400 transition">Technology</a>
+        <a href="/form" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">
+          Try it →
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-gradient text-white py-32 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+      <span style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc;"
+        class="inline-block text-xs font-semibold px-3 py-1.5 rounded-full mb-8 tracking-widest uppercase">
+        AI-Powered Customer Intelligence
+      </span>
+      <h1 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-white">
+        Know who's leaving<br/>before they do.
+      </h1>
+      <p style="color:#94a3b8;" class="text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
+        ChurnGuard scores customer churn risk in real time and gives your retention team
+        exactly the actions they need — before it's too late.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/form"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-4 rounded-xl text-base transition shadow-2xl">
+          Run a prediction →
+        </a>
+        <a href="#how-it-works"
+          style="border:1px solid #334155; color:#cbd5e1;"
+          class="font-semibold px-8 py-4 rounded-xl text-base hover:bg-slate-800 transition">
+          See how it works
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section style="background:#1e293b; border-top:1px solid #334155; border-bottom:1px solid #334155;" class="py-16 px-6">
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="card card-hover text-center p-8 rounded-2xl">
+        <div class="text-5xl font-extrabold text-rose-400 mb-2">26%</div>
+        <div class="text-white font-semibold mb-1">Avg. Industry Churn</div>
+        <div style="color:#64748b;" class="text-sm">Annual telecom sector benchmark</div>
+      </div>
+      <div class="card card-hover text-center p-8 rounded-2xl">
+        <div class="text-5xl font-extrabold text-indigo-400 mb-2">5×</div>
+        <div class="text-white font-semibold mb-1">Cheaper to Retain</div>
+        <div style="color:#64748b;" class="text-sm">Than to acquire a new customer</div>
+      </div>
+      <div class="card card-hover text-center p-8 rounded-2xl">
+        <div class="text-5xl font-extrabold text-emerald-400 mb-2">&lt;1s</div>
+        <div class="text-white font-semibold mb-1">Instant Predictions</div>
+        <div style="color:#64748b;" class="text-sm">Real-time risk scoring & actions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" style="background:#0f172a;" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl font-bold text-white mb-3">How it works</h2>
+        <p style="color:#64748b;" class="max-w-xl mx-auto">Three steps from raw customer data to an actionable retention plan.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <div class="card card-hover rounded-2xl p-8 text-center">
+          <div style="background:rgba(99,102,241,0.15);" class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-7 h-7 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+            </svg>
+          </div>
+          <div class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">Step 01</div>
+          <h3 class="text-lg font-bold text-white mb-2">Enter Customer Data</h3>
+          <p style="color:#64748b;" class="text-sm leading-relaxed">Fill in the customer profile — contract type, services, and billing details.</p>
+        </div>
+
+        <div class="card card-hover rounded-2xl p-8 text-center">
+          <div style="background:rgba(139,92,246,0.15);" class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-7 h-7 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+          </div>
+          <div class="text-xs font-bold text-violet-400 uppercase tracking-widest mb-2">Step 02</div>
+          <h3 class="text-lg font-bold text-white mb-2">AI Scores the Risk</h3>
+          <p style="color:#64748b;" class="text-sm leading-relaxed">Our model calculates a churn probability and identifies the key risk drivers behind it.</p>
+        </div>
+
+        <div class="card card-hover rounded-2xl p-8 text-center">
+          <div style="background:rgba(16,185,129,0.15);" class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <svg class="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-2">Step 03</div>
+          <h3 class="text-lg font-bold text-white mb-2">Take Action</h3>
+          <p style="color:#64748b;" class="text-sm leading-relaxed">Receive targeted retention actions your team can execute immediately.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Powered by -->
+  <section id="powered-by" style="background:#1e293b; border-top:1px solid #334155;" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-14">
+        <h2 class="text-3xl font-bold text-white mb-3">What powers it</h2>
+        <p style="color:#64748b;" class="max-w-xl mx-auto">A production-grade ML pipeline with engineered features and a smart recommendation engine.</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="card rounded-2xl p-6">
+          <div style="background:rgba(99,102,241,0.15);" class="w-10 h-10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+            </svg>
+          </div>
+          <h3 class="font-bold text-white mb-3">XGBoost Model</h3>
+          <ul style="color:#64748b;" class="space-y-2 text-sm">
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>Class-imbalance weighting</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>StandardScaler + OneHotEncoder pipeline</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>L1 + L2 regularisation</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>Optimised for churn detection</li>
+          </ul>
+        </div>
+
+        <div class="card rounded-2xl p-6">
+          <div style="background:rgba(139,92,246,0.15);" class="w-10 h-10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+            </svg>
+          </div>
+          <h3 class="font-bold text-white mb-3">Feature Engineering</h3>
+          <ul style="color:#64748b;" class="space-y-2 text-sm">
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>TotalServices — active add-on count</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>ChargesPerService — cost efficiency</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>TotalCharges for lifetime value</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-violet-500 shrink-0"></span>Stratified train / test split</li>
+          </ul>
+        </div>
+
+        <div class="card rounded-2xl p-6">
+          <div style="background:rgba(16,185,129,0.15);" class="w-10 h-10 rounded-xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <h3 class="font-bold text-white mb-3">Recommendation Engine</h3>
+          <ul style="color:#64748b;" class="space-y-2 text-sm">
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Contract upgrade offers</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Personalised billing discounts</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Service bundle trials</li>
+            <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>Auto-pay & onboarding actions</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background:#1e1b4b; border-top:1px solid #312e81;" class="py-24 px-6">
+    <div class="max-w-3xl mx-auto text-center">
+      <h2 class="text-3xl font-bold text-white mb-4">Ready to stop churn before it starts?</h2>
+      <p style="color:#a5b4fc;" class="mb-10 text-lg">Run your first prediction in under 60 seconds.</p>
+      <a href="/form"
+        class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-10 py-4 rounded-xl text-base transition shadow-2xl inline-block">
+        Get started — it's free →
+      </a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background:#0f172a; border-top:1px solid #1e293b;" class="py-10 px-6 text-center text-sm">
+    <p class="font-semibold text-white mb-1">ChurnGuard</p>
+    <p style="color:#475569;">Built with XGBoost · FastAPI · Tailwind CSS</p>
+  </footer>
+
+</body>
+</html>
