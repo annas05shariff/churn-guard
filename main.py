@@ -331,7 +331,7 @@ def predict_batch(customers: list[BatchCustomer]):
 @app.get("/high_risk_customers", response_model=BatchResponse, tags=["Dashboard"])
 def high_risk_customers(
     threshold: float = Query(default=0.5, ge=0.0, le=1.0, description="Minimum churn probability"),
-    limit:     int   = Query(default=200, ge=1, le=1000, description="Max customers to return"),
+    limit:     int   = Query(default=5000, ge=1, le=5000, description="Max customers to return"),
 ):
     """
     Scans the demo Telco dataset and returns all customers above the

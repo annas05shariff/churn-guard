@@ -161,7 +161,7 @@
       document.getElementById('refreshIcon').classList.add('spin');
 
       try {
-        const res  = await fetch('/high_risk_customers?threshold=0.2&limit=1000');
+        const res  = await fetch('/high_risk_customers?threshold=0.2&limit=5000');
         if (!res.ok) throw new Error();
         const data = await res.json();
 

@@ -1,0 +1,84 @@
+{
+  "name": "ChurnGuard Daily Digest — Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "node-0001-0001-0001-0001-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:8000/high_risk_customers",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "threshold", "value": "0.2" },
+            { "name": "limit", "value": "5000" }
+          ]
+        },
+        "options": { "timeout": 30000 }
+      },
+      "id": "node-0002-0002-0002-0002-000000000002",
+      "name": "Get High Risk Customers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst high   = data.high_risk_count   || 0;\nconst medium = data.medium_risk_count || 0;\nconst low    = data.low_risk_count    || 0;\nconst total  = data.total_scanned     || 0;\nconst customers = data.customers || [];\n\nconst today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });\nconst time  = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' });\n\nfunction esc(str) {\n  return String(str).replace(/[_*[\\]()~`>#+\\-=|{}.!]/g, '\\\\$&');\n}\n\nconst top5 = customers.filter(c => c.risk_level === 'High').slice(0, 5);\nconst rows = top5.map(c => {\n  const prob = (c.churn_probability * 100).toFixed(1);\n  return `• \\`${c.customer_id}\\` — *${esc(prob)}%* — ${esc(c.top_driver)}`;\n}).join('\\n');\n\nconst text = `🛡 *ChurnGuard Daily Digest*\\n📅 ${esc(today)} \\\\| ${esc(time)}\\n\\n📊 *Risk Summary*\\n🔴 High Risk: *${esc(high)}*\\n🟡 Medium Risk: *${esc(medium)}*\\n🟢 Low Risk: *${esc(low)}*\\n📋 Total Scanned: *${esc(total.toLocaleString())}*\\n\\n🔴 *Top High\\\\-Risk Customers*\\n${rows}\\n\\n_View dashboard at localhost:8000/dashboard_`;\n\nreturn [{ json: { text } }];"
+      },
+      "id": "node-0003-0003-0003-0003-000000000003",
+      "name": "Build Telegram Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "6378525750",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "id": "node-0004-0004-0004-0004-000000000004",
+      "name": "Send Telegram Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [920, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "1",
+          "name": "ChurnGuard Bot"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Get High Risk Customers", "type": "main", "index": 0 }]]
+    },
+    "Get High Risk Customers": {
+      "main": [[{ "node": "Build Telegram Message", "type": "main", "index": 0 }]]
+    },
+    "Build Telegram Message": {
+      "main": [[{ "node": "Send Telegram Alert", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
