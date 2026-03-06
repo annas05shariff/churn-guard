@@ -1,0 +1,122 @@
+{
+  "name": "ChurnGuard Daily Digest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * 1-5"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://host.docker.internal:8000/high_risk_customers",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "threshold",
+              "value": "0.2"
+            },
+            {
+              "name": "limit",
+              "value": "1000"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Get High Risk Customers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst high = data.high_risk_count || 0;\nconst medium = data.medium_risk_count || 0;\nconst low = data.low_risk_count || 0;\nconst total = data.total_scanned || 0;\nconst customers = data.customers || [];\n\n// Top 10 high-risk customers\nconst topHigh = customers.filter(c => c.risk_level === 'High').slice(0, 10);\n// Top 5 medium-risk customers\nconst topMedium = customers.filter(c => c.risk_level === 'Medium').slice(0, 5);\n\nconst riskColor = { High: '#ef4444', Medium: '#f59e0b', Low: '#10b981' };\nconst riskBg = { High: '33', Medium: '33', Low: '33' };\n\nfunction buildRows(list) {\n  return list.map(c => {\n    const color = riskColor[c.risk_level];\n    const prob = (c.churn_probability * 100).toFixed(1);\n    const recs = c.recommendation_summary || 'N/A';\n    return `<tr style=\"border-bottom:1px solid #1e293b;\"><td style=\"padding:12px 16px;color:#f1f5f9;font-family:monospace;font-size:13px;\">${c.customer_id}</td><td style=\"padding:12px 16px;\"><span style=\"background:${color}22;color:${color};border:1px solid ${color}44;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;\">${c.risk_level}</span></td><td style=\"padding:12px 16px;color:#f1f5f9;font-weight:700;\">${prob}%</td><td style=\"padding:12px 16px;color:#94a3b8;font-size:12px;max-width:180px;\">${c.top_driver}</td><td style=\"padding:12px 16px;color:#a5b4fc;font-size:12px;max-width:200px;\">${recs}</td></tr>`;\n  }).join('');\n}\n\nconst today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });\nconst subject = `ChurnGuard Daily Digest — ${high} High Risk, ${medium} Medium Risk | ${today}`;\n\nconst html = `<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/></head><body style=\"margin:0;padding:0;background:#0f172a;font-family:Arial,Helvetica,sans-serif;\"><div style=\"max-width:840px;margin:0 auto;padding:40px 20px;\"><!-- HEADER --><div style=\"text-align:center;margin-bottom:36px;\"><div style=\"display:inline-block;background:#1e293b;border:1px solid #334155;border-radius:20px;padding:6px 18px;margin-bottom:14px;\"><span style=\"color:#a5b4fc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;\">ChurnGuard · Daily Digest</span></div><h1 style=\"color:#ffffff;font-size:26px;font-weight:800;margin:0 0 6px;\">${today}</h1><p style=\"color:#475569;font-size:13px;margin:0;\">Automated churn risk scan · Generated at ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</p></div><!-- STATS --><table style=\"width:100%;border-collapse:separate;border-spacing:12px;margin-bottom:32px;\"><tr><td style=\"background:#1e293b;border:1px solid #334155;border-radius:12px;padding:20px;text-align:center;width:25%;\"><div style=\"font-size:30px;font-weight:800;color:#6366f1;\">${total.toLocaleString()}</div><div style=\"color:#64748b;font-size:11px;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;\">Total Scanned</div></td><td style=\"background:#1e293b;border:1px solid #ef444444;border-radius:12px;padding:20px;text-align:center;width:25%;\"><div style=\"font-size:30px;font-weight:800;color:#ef4444;\">${high}</div><div style=\"color:#64748b;font-size:11px;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;\">🔴 High Risk</div></td><td style=\"background:#1e293b;border:1px solid #f59e0b44;border-radius:12px;padding:20px;text-align:center;width:25%;\"><div style=\"font-size:30px;font-weight:800;color:#f59e0b;\">${medium}</div><div style=\"color:#64748b;font-size:11px;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;\">🟡 Medium Risk</div></td><td style=\"background:#1e293b;border:1px solid #10b98144;border-radius:12px;padding:20px;text-align:center;width:25%;\"><div style=\"font-size:30px;font-weight:800;color:#10b981;\">${low}</div><div style=\"color:#64748b;font-size:11px;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:1px;\">🟢 Low Risk</div></td></tr></table><!-- HIGH RISK TABLE --><div style=\"background:#1e293b;border:1px solid #334155;border-radius:12px;overflow:hidden;margin-bottom:24px;\"><div style=\"padding:18px 24px;border-bottom:1px solid #334155;display:flex;align-items:center;justify-content:space-between;\"><div><h2 style=\"color:#ef4444;font-size:15px;font-weight:700;margin:0 0 2px;\">🔴 Top High-Risk Customers</h2><p style=\"color:#64748b;font-size:12px;margin:0;\">Showing top ${topHigh.length} · sorted by probability desc</p></div></div><table style=\"width:100%;border-collapse:collapse;\"><thead><tr style=\"background:#0f172a;\"><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Customer ID</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Risk</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Probability</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Top Driver</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Recommended Action</th></tr></thead><tbody>${buildRows(topHigh)}</tbody></table></div><!-- MEDIUM RISK TABLE -->${topMedium.length > 0 ? `<div style=\"background:#1e293b;border:1px solid #334155;border-radius:12px;overflow:hidden;margin-bottom:24px;\"><div style=\"padding:18px 24px;border-bottom:1px solid #334155;\"><h2 style=\"color:#f59e0b;font-size:15px;font-weight:700;margin:0 0 2px;\">🟡 Medium-Risk Customers to Watch</h2><p style=\"color:#64748b;font-size:12px;margin:0;\">Showing top ${topMedium.length} · act before they escalate</p></div><table style=\"width:100%;border-collapse:collapse;\"><thead><tr style=\"background:#0f172a;\"><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Customer ID</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Risk</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Probability</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Top Driver</th><th style=\"padding:10px 16px;text-align:left;color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:1px;\">Recommended Action</th></tr></thead><tbody>${buildRows(topMedium)}</tbody></table></div>` : ''}</div><!-- CTA --><div style=\"text-align:center;margin-bottom:32px;\"><a href=\"http://localhost:8000/dashboard\" style=\"background:#6366f1;color:#ffffff;padding:14px 36px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;display:inline-block;\">Open Full Dashboard →</a></div><!-- FOOTER --><div style=\"text-align:center;color:#334155;font-size:11px;border-top:1px solid #1e293b;padding-top:20px;\"><p style=\"margin:0;color:#475569;\">ChurnGuard &middot; Built with XGBoost · FastAPI · n8n · SendGrid</p><p style=\"margin:6px 0 0;color:#334155;\">This email was automatically generated by your daily ChurnGuard scan.</p></div></div></body></html>`;\n\nreturn [{ json: { subject, html } }];"
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Build Email HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "annasshariff05@gmail.com",
+        "toEmail": "annasshariff05@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Send Digest Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [920, 300],
+      "credentials": {
+        "smtp": {
+          "id": "1",
+          "name": "SendGrid SMTP"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get High Risk Customers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get High Risk Customers": {
+      "main": [
+        [
+          {
+            "node": "Build Email HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Email HTML": {
+      "main": [
+        [
+          {
+            "node": "Send Digest Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "churnguard-v1"
+  }
+}

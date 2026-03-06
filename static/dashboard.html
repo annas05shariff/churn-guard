@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChurnGuard — Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background:#0f172a; color:#f1f5f9; font-family:system-ui,sans-serif; }
+    .card { background:#1e293b; border:1px solid #334155; border-radius:1rem; }
+    .badge-high   { background:rgba(239,68,68,0.15);  color:#f87171; border:1px solid rgba(239,68,68,0.3);  }
+    .badge-medium { background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); }
+    .badge-low    { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); }
+    .tab-active   { background:#6366f1; color:#fff; }
+    .tab-inactive { background:#1e293b; color:#64748b; border:1px solid #334155; }
+    tr:hover td { background:rgba(99,102,241,0.05); }
+    .spin { animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    ::-webkit-scrollbar { width:6px; height:6px; }
+    ::-webkit-scrollbar-track { background:#0f172a; }
+    ::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav style="background:#1e293b;border-bottom:1px solid #334155;" class="sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <a href="/" class="flex items-center gap-2 hover:opacity-80 transition">
+          <div class="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <span class="font-bold text-white">ChurnGuard</span>
+        </a>
+        <!-- Nav links -->
+        <div class="flex items-center gap-1">
+          <a href="/dashboard" style="background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);"
+            class="text-xs font-semibold px-3 py-1.5 rounded-lg">Dashboard</a>
+          <a href="/form" style="color:#64748b;"
+            class="text-xs font-semibold px-3 py-1.5 rounded-lg hover:text-white transition">Single Predict</a>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <span id="lastUpdated" style="color:#475569;" class="text-xs"></span>
+        <button onclick="loadData()" id="refreshBtn"
+          class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+          <svg id="refreshIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page header -->
+  <div class="max-w-7xl mx-auto px-6 pt-8 pb-4">
+    <h1 class="text-2xl font-bold text-white">At-Risk Customer Dashboard</h1>
+    <p style="color:#64748b;" class="text-sm mt-1">Daily scan of all customers — sorted by churn risk.</p>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="max-w-7xl mx-auto px-6 pb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-1">Total Scanned</p>
+      <p id="statTotal" class="text-3xl font-extrabold text-white">—</p>
+    </div>
+    <div class="card p-5">
+      <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-1">High Risk</p>
+      <p id="statHigh" class="text-3xl font-extrabold text-red-400">—</p>
+    </div>
+    <div class="card p-5">
+      <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-1">Medium Risk</p>
+      <p id="statMedium" class="text-3xl font-extrabold text-amber-400">—</p>
+    </div>
+    <div class="card p-5">
+      <p style="color:#475569;" class="text-xs font-bold uppercase tracking-widest mb-1">Low Risk</p>
+      <p id="statLow" class="text-3xl font-extrabold text-emerald-400">—</p>
+    </div>
+  </div>
+
+  <!-- Filter tabs + search -->
+  <div class="max-w-7xl mx-auto px-6 pb-4 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex gap-2" id="filterTabs">
+      <button onclick="setFilter('all')"    id="tab-all"    class="tab-active   text-xs font-semibold px-4 py-2 rounded-lg transition">All At-Risk</button>
+      <button onclick="setFilter('High')"   id="tab-High"   class="tab-inactive text-xs font-semibold px-4 py-2 rounded-lg transition">🔴 High</button>
+      <button onclick="setFilter('Medium')" id="tab-Medium" class="tab-inactive text-xs font-semibold px-4 py-2 rounded-lg transition">🟡 Medium</button>
+      <button onclick="setFilter('Low')"    id="tab-Low"    class="tab-inactive text-xs font-semibold px-4 py-2 rounded-lg transition">🟢 Low</button>
+    </div>
+    <input id="searchInput" oninput="renderTable()" type="text" placeholder="Search customer ID..."
+      style="background:#1e293b;border:1px solid #334155;color:#f1f5f9;border-radius:0.5rem;padding:0.5rem 0.75rem;font-size:0.75rem;width:200px;outline:none;"
+      onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#334155'" />
+  </div>
+
+  <!-- Table -->
+  <div class="max-w-7xl mx-auto px-6 pb-16">
+    <div class="card overflow-hidden">
+
+      <!-- Loading state -->
+      <div id="loadingState" class="flex flex-col items-center justify-center py-24">
+        <svg class="spin w-8 h-8 text-indigo-500 mb-3" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        <p style="color:#475569;" class="text-sm">Scanning customers…</p>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorState" class="hidden flex flex-col items-center justify-center py-24">
+        <p class="text-red-400 font-semibold mb-1">Failed to load data</p>
+        <p style="color:#475569;" class="text-sm">Make sure the API is running on port 8000</p>
+      </div>
+
+      <!-- Table itself -->
+      <div id="tableWrap" class="hidden overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr style="border-bottom:1px solid #334155;">
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Customer ID</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Risk</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Probability</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Contract</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Monthly</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Tenure</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Top Driver</th>
+              <th class="text-left px-5 py-3.5" style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Recommended Action</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div id="tableFooter" class="px-5 py-3" style="border-top:1px solid #1e293b;color:#475569;font-size:0.75rem;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detail modal -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.7);">
+    <div class="card w-full max-w-lg mx-4 p-6 relative">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script>
+    let allCustomers = [];
+    let activeFilter = 'all';
+
+    // ── Load data from API ────────────────────────────────────────────────
+    async function loadData() {
+      show('loadingState'); hide('tableWrap'); hide('errorState');
+      document.getElementById('refreshIcon').classList.add('spin');
+
+      try {
+        const res  = await fetch('/high_risk_customers?threshold=0.2&limit=1000');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+
+        allCustomers = data.customers;
+
+        document.getElementById('statTotal').textContent  = data.total_scanned.toLocaleString();
+        document.getElementById('statHigh').textContent   = data.high_risk_count;
+        document.getElementById('statMedium').textContent = data.medium_risk_count;
+        document.getElementById('statLow').textContent    = data.low_risk_count;
+        document.getElementById('lastUpdated').textContent =
+          'Last updated ' + new Date().toLocaleTimeString();
+
+        renderTable();
+        hide('loadingState'); show('tableWrap');
+      } catch (e) {
+        hide('loadingState'); show('errorState');
+      }
+
+      document.getElementById('refreshIcon').classList.remove('spin');
+    }
+
+    // ── Render table ──────────────────────────────────────────────────────
+    function renderTable() {
+      const search  = document.getElementById('searchInput').value.toLowerCase();
+      let filtered  = allCustomers.filter(c => {
+        const matchFilter = activeFilter === 'all' || c.risk_level === activeFilter;
+        const matchSearch = c.customer_id.toLowerCase().includes(search);
+        return matchFilter && matchSearch;
+      });
+
+      const tbody = document.getElementById('tableBody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-12" style="color:#475569;">No customers match the current filter.</td></tr>`;
+        document.getElementById('tableFooter').textContent = '';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const pct    = Math.round(c.churn_probability * 100);
+        const badge  = c.risk_level === 'High'
+          ? '<span class="badge-high   text-xs font-semibold px-2 py-0.5 rounded-full">High</span>'
+          : c.risk_level === 'Medium'
+          ? '<span class="badge-medium text-xs font-semibold px-2 py-0.5 rounded-full">Medium</span>'
+          : '<span class="badge-low    text-xs font-semibold px-2 py-0.5 rounded-full">Low</span>';
+        const barW   = pct;
+        const barCol = c.risk_level === 'High' ? '#ef4444' : c.risk_level === 'Medium' ? '#f59e0b' : '#10b981';
+        return `
+          <tr onclick="openModal('${c.customer_id}')" style="border-bottom:1px solid #1e293b;cursor:pointer;">
+            <td class="px-5 py-3.5 font-mono text-indigo-400 font-medium">${c.customer_id}</td>
+            <td class="px-5 py-3.5">${badge}</td>
+            <td class="px-5 py-3.5">
+              <div class="flex items-center gap-2">
+                <div style="width:56px;background:#334155;border-radius:4px;height:5px;">
+                  <div style="width:${barW}%;background:${barCol};border-radius:4px;height:5px;"></div>
+                </div>
+                <span class="font-semibold" style="color:${barCol};">${pct}%</span>
+              </div>
+            </td>
+            <td class="px-5 py-3.5" style="color:#94a3b8;">${c.contract}</td>
+            <td class="px-5 py-3.5" style="color:#94a3b8;">$${c.monthly_charges.toFixed(0)}</td>
+            <td class="px-5 py-3.5" style="color:#94a3b8;">${c.tenure}mo</td>
+            <td class="px-5 py-3.5 max-w-xs" style="color:#94a3b8;font-size:0.8rem;">${truncate(c.top_driver, 45)}</td>
+            <td class="px-5 py-3.5 max-w-xs" style="color:#94a3b8;font-size:0.8rem;">${truncate(c.recommendation_summary.split(' | ')[0], 50)}</td>
+          </tr>`;
+      }).join('');
+
+      document.getElementById('tableFooter').textContent =
+        `Showing ${filtered.length} customer${filtered.length !== 1 ? 's' : ''}`;
+    }
+
+    // ── Modal ─────────────────────────────────────────────────────────────
+    function openModal(customerId) {
+      const c = allCustomers.find(x => x.customer_id === customerId);
+      if (!c) return;
+      const pct    = Math.round(c.churn_probability * 100);
+      const tColor = c.risk_level === 'High' ? '#ef4444' : c.risk_level === 'Medium' ? '#f59e0b' : '#10b981';
+
+      document.getElementById('modalContent').innerHTML = `
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <p style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Customer</p>
+            <p class="font-mono font-bold text-indigo-400 text-lg">${c.customer_id}</p>
+          </div>
+          <div class="text-right">
+            <p style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Churn Probability</p>
+            <p class="text-3xl font-extrabold" style="color:${tColor};">${pct}%</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:0.75rem;padding:0.75rem;">
+            <p style="color:#475569;font-size:0.65rem;font-weight:700;text-transform:uppercase;">Contract</p>
+            <p class="text-white text-sm font-medium mt-0.5">${c.contract}</p>
+          </div>
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:0.75rem;padding:0.75rem;">
+            <p style="color:#475569;font-size:0.65rem;font-weight:700;text-transform:uppercase;">Monthly</p>
+            <p class="text-white text-sm font-medium mt-0.5">$${c.monthly_charges.toFixed(0)}</p>
+          </div>
+          <div style="background:#0f172a;border:1px solid #334155;border-radius:0.75rem;padding:0.75rem;">
+            <p style="color:#475569;font-size:0.65rem;font-weight:700;text-transform:uppercase;">Tenure</p>
+            <p class="text-white text-sm font-medium mt-0.5">${c.tenure} months</p>
+          </div>
+        </div>
+
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:0.75rem;padding:1rem;" class="mb-4">
+          <p style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Risk Drivers</p>
+          <ul class="space-y-1.5">
+            ${c.recommendations.map(r => `
+              <li style="display:flex;gap:0.5rem;align-items:flex-start;font-size:0.8rem;color:#94a3b8;">
+                <span style="color:${tColor};margin-top:2px;">•</span>${r.cause}
+              </li>`).join('')}
+          </ul>
+        </div>
+
+        <div style="background:#0f172a;border:1px solid #334155;border-radius:0.75rem;padding:1rem;">
+          <p style="color:#475569;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.75rem;">Recommended Actions</p>
+          ${c.recommendations.map((r, i) => `
+            <div style="border-bottom:1px solid #1e293b;padding-bottom:0.75rem;margin-bottom:0.75rem;">
+              <p style="color:#6366f1;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Action ${i+1}</p>
+              <p style="color:#f1f5f9;font-size:0.8rem;font-weight:600;margin-top:0.2rem;">${r.cause}</p>
+              <p style="color:#64748b;font-size:0.8rem;margin-top:0.15rem;">${r.action}</p>
+            </div>`).join('')}
+        </div>`;
+
+      show('modal');
+    }
+
+    function closeModal() { hide('modal'); }
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // ── Filters ───────────────────────────────────────────────────────────
+    function setFilter(f) {
+      activeFilter = f;
+      ['all','High','Medium','Low'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (t === f) { el.className = 'tab-active   text-xs font-semibold px-4 py-2 rounded-lg transition'; }
+        else         { el.className = 'tab-inactive text-xs font-semibold px-4 py-2 rounded-lg transition'; }
+      });
+      renderTable();
+    }
+
+    // ── Utils ─────────────────────────────────────────────────────────────
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+    function truncate(str, n) { return str.length > n ? str.slice(0, n) + '…' : str; }
+
+    // Auto-load on page open
+    loadData();
+  </script>
+
+</body>
+</html>
