@@ -141,7 +141,7 @@
 
   <!-- Detail modal -->
   <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.7);">
-    <div class="card w-full max-w-lg mx-4 p-6 relative">
+    <div class="card w-full max-w-lg mx-4 p-6 relative" style="max-height:88vh;overflow-y:auto;">
       <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -299,7 +299,7 @@
               Explain
             </button>
           </div>
-          <p id="aiModalText" style="color:#64748b;font-size:0.75rem;">Click Explain to get an AI-generated reasoning for this customer's risk.</p>
+          <ul id="aiModalText" style="font-size:0.75rem;"><li style="color:#64748b;">Click Explain to get an AI-generated reasoning for this customer's risk.</li></ul>
         </div>`;
 
       show('modal');
@@ -313,8 +313,7 @@
       const txt = document.getElementById('aiModalText');
       btn.textContent = '…';
       btn.disabled = true;
-      txt.style.color = '#64748b';
-      txt.textContent = 'Generating explanation…';
+      txt.innerHTML = '<li style="color:#64748b;">Generating explanation…</li>';
 
       try {
         const res = await fetch('/llm_explain', {
@@ -331,15 +330,25 @@
           }),
         });
         const data = await res.json();
-        txt.style.color = '#c7d2fe';
-        txt.textContent = data.explanation;
+        renderDashAIBullets(data.explanation, '#c7d2fe');
       } catch (e) {
-        txt.style.color = '#f87171';
-        txt.textContent = 'AI explanation unavailable — make sure Ollama is running.';
+        renderDashAIBullets('• AI explanation unavailable — make sure Ollama is running.', '#f87171');
       }
 
       btn.textContent = 'Explain';
       btn.disabled = false;
+    }
+
+    function renderDashAIBullets(text, color) {
+      const el = document.getElementById('aiModalText');
+      const bullets = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      el.innerHTML = bullets.map(b => {
+        const clean = b.replace(/^[•\-\*]\s*/, '');
+        return `<li style="display:flex;gap:0.5rem;align-items:flex-start;color:${color};margin-bottom:6px;">
+          <span style="margin-top:3px;width:5px;height:5px;border-radius:50%;background:#6366f1;flex-shrink:0;display:inline-block;"></span>
+          <span>${clean}</span>
+        </li>`;
+      }).join('');
     }
 
     function closeModal() { hide('modal'); }

@@ -228,8 +228,8 @@
           </svg>
           <span style="color:#64748b;" class="text-sm">Generating explanation…</span>
         </div>
-        <!-- Explanation text -->
-        <p id="aiText" style="color:#c7d2fe;line-height:1.75;" class="hidden text-sm"></p>
+        <!-- Explanation bullets -->
+        <ul id="aiText" class="hidden text-sm space-y-2"></ul>
       </div>
 
       <!-- Reset -->
@@ -389,13 +389,25 @@
           body: JSON.stringify(llmPayload),
         });
         const result = await res.json();
-        document.getElementById('aiText').textContent = result.explanation;
+        renderAIBullets('aiText', result.explanation, '#c7d2fe');
       } catch (err) {
-        document.getElementById('aiText').textContent = 'AI explanation unavailable — make sure Ollama is running.';
+        renderAIBullets('aiText', '• AI explanation unavailable — make sure Ollama is running.', '#f87171');
       }
 
       document.getElementById('aiLoading').classList.add('hidden');
       document.getElementById('aiText').classList.remove('hidden');
+    }
+
+    function renderAIBullets(elId, text, color) {
+      const el = document.getElementById(elId);
+      const bullets = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      el.innerHTML = bullets.map(b => {
+        const clean = b.replace(/^[•\-\*]\s*/, '');
+        return `<li style="display:flex;gap:0.5rem;align-items:flex-start;color:${color};">
+          <span style="margin-top:4px;width:6px;height:6px;border-radius:50%;background:#6366f1;flex-shrink:0;display:inline-block;"></span>
+          <span>${clean}</span>
+        </li>`;
+      }).join('');
     }
 
     function resetForm() {

@@ -440,7 +440,10 @@ Risk Drivers identified:
 Recommended retention actions:
 {actions_text}
 
-Write exactly 2-3 sentences explaining why this specific customer is at risk and why the recommended actions make sense for their situation. Be specific. Do NOT invent new recommendations or contradict the actions above. Speak directly to a retention agent."""
+Give exactly 3 bullet points explaining why this specific customer is at risk and why the recommended actions make sense. Format each bullet as:
+• [point here]
+
+Be specific to this customer's profile. Do NOT invent new recommendations or contradict the actions above. No intro sentence, just the 3 bullets."""
 
     try:
         payload = _json.dumps({
