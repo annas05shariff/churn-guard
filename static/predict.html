@@ -213,6 +213,25 @@
         </div>
       </div>
 
+      <!-- AI Reasoning -->
+      <div id="aiCard" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.2);" class="rounded-2xl p-7">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-lg">🤖</span>
+          <p style="color:#a5b4fc;" class="text-xs font-bold uppercase tracking-widest">AI Reasoning</p>
+          <span style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.3);" class="text-xs px-2 py-0.5 rounded-full font-semibold ml-1">llama3.2:3b</span>
+        </div>
+        <!-- Loading state -->
+        <div id="aiLoading" class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-indigo-400 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+          </svg>
+          <span style="color:#64748b;" class="text-sm">Generating explanation…</span>
+        </div>
+        <!-- Explanation text -->
+        <p id="aiText" style="color:#c7d2fe;line-height:1.75;" class="hidden text-sm"></p>
+      </div>
+
       <!-- Reset -->
       <div class="text-center pb-10">
         <button onclick="resetForm()" class="text-indigo-400 hover:text-indigo-300 font-semibold text-sm hover:underline transition">
@@ -278,7 +297,9 @@
       try {
         const res  = await fetch('/predict', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
         if (!res.ok) throw new Error(`API ${res.status}`);
-        renderResults(await res.json());
+        const data = await res.json();
+        renderResults(data);
+        fetchAIExplanation(payload, data);
       } catch (err) {
         alert('Could not reach the API. Make sure the server is running.');
       }
@@ -339,6 +360,42 @@
       document.getElementById('btnArrow').classList.toggle('hidden', on);
       document.getElementById('btnSpinner').classList.toggle('hidden', !on);
       document.getElementById('submitBtn').disabled = on;
+    }
+
+    async function fetchAIExplanation(customerPayload, prediction) {
+      // Reset AI card to loading state
+      document.getElementById('aiLoading').classList.remove('hidden');
+      document.getElementById('aiText').classList.add('hidden');
+
+      const llmPayload = {
+        risk_level:        prediction.risk_level,
+        churn_probability: prediction.churn_probability,
+        churn_drivers:     prediction.churn_drivers,
+        recommendations:   prediction.recommendations,
+        tenure:            customerPayload.tenure,
+        contract:          customerPayload.Contract,
+        monthly_charges:   customerPayload.MonthlyCharges,
+        internet_service:  customerPayload.InternetService,
+        payment_method:    customerPayload.PaymentMethod,
+        senior_citizen:    customerPayload.SeniorCitizen,
+        partner:           customerPayload.Partner,
+        dependents:        customerPayload.Dependents,
+      };
+
+      try {
+        const res = await fetch('/llm_explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(llmPayload),
+        });
+        const result = await res.json();
+        document.getElementById('aiText').textContent = result.explanation;
+      } catch (err) {
+        document.getElementById('aiText').textContent = 'AI explanation unavailable — make sure Ollama is running.';
+      }
+
+      document.getElementById('aiLoading').classList.add('hidden');
+      document.getElementById('aiText').classList.remove('hidden');
     }
 
     function resetForm() {

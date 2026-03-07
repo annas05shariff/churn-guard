@@ -7,6 +7,8 @@ from pathlib import Path
 import joblib
 import pandas as pd
 import numpy as np
+import urllib.request
+import json as _json
 
 # ---------------------------------------------------------------------------
 # Startup: load model + demo data once
@@ -373,3 +375,92 @@ def high_risk_customers(
         low_risk_count    = low,
         customers         = results[:limit],
     )
+
+
+# ---------------------------------------------------------------------------
+# LLM Explanation  (Ollama llama3.2:3b)
+# ---------------------------------------------------------------------------
+
+class LLMExplainRequest(BaseModel):
+    """Flexible input — works from both the predict form and the dashboard."""
+    risk_level:        str
+    churn_probability: float
+    churn_drivers:     list[str]
+    recommendations:   list[Recommendation]
+    # Optional customer profile fields
+    tenure:            Optional[int]   = None
+    contract:          Optional[str]   = None
+    monthly_charges:   Optional[float] = None
+    internet_service:  Optional[str]   = None
+    payment_method:    Optional[str]   = None
+    senior_citizen:    Optional[int]   = None
+    partner:           Optional[str]   = None
+    dependents:        Optional[str]   = None
+
+
+class LLMExplainResponse(BaseModel):
+    explanation: str
+    model:       str = "llama3.2:3b"
+
+
+@app.post("/llm_explain", response_model=LLMExplainResponse, tags=["AI"])
+def llm_explain(request: LLMExplainRequest):
+    """
+    Calls local Ollama (llama3.2:3b) to produce a plain-English explanation
+    of why this customer is at risk. The LLM reasons within the constraints
+    of the rule-based drivers and actions — it never invents new ones.
+    """
+    r = request
+
+    # Build customer profile text from whatever fields are available
+    profile_lines = []
+    if r.tenure           is not None: profile_lines.append(f"- Tenure: {r.tenure} months")
+    if r.contract         is not None: profile_lines.append(f"- Contract: {r.contract}")
+    if r.monthly_charges  is not None: profile_lines.append(f"- Monthly Charges: ${r.monthly_charges:.2f}")
+    if r.internet_service is not None: profile_lines.append(f"- Internet Service: {r.internet_service}")
+    if r.payment_method   is not None: profile_lines.append(f"- Payment Method: {r.payment_method}")
+    if r.partner          is not None: profile_lines.append(f"- Partner: {r.partner}")
+    if r.dependents       is not None: profile_lines.append(f"- Dependents: {r.dependents}")
+    if r.senior_citizen   is not None: profile_lines.append(f"- Senior Citizen: {'Yes' if r.senior_citizen else 'No'}")
+
+    profile_text  = "\n".join(profile_lines) if profile_lines else "- Profile not available"
+    drivers_text  = "\n".join(f"- {d}" for d in r.churn_drivers)
+    actions_text  = "\n".join(f"- {rec.cause}: {rec.action}" for rec in r.recommendations)
+
+    prompt = f"""You are a customer retention advisor. A churn prediction model has flagged this telecom customer.
+
+Customer Profile:
+{profile_text}
+
+Churn Risk: {r.risk_level} ({r.churn_probability:.0%} probability)
+
+Risk Drivers identified:
+{drivers_text}
+
+Recommended retention actions:
+{actions_text}
+
+Write exactly 2-3 sentences explaining why this specific customer is at risk and why the recommended actions make sense for their situation. Be specific. Do NOT invent new recommendations or contradict the actions above. Speak directly to a retention agent."""
+
+    try:
+        payload = _json.dumps({
+            "model":   "llama3.2:3b",
+            "prompt":  prompt,
+            "stream":  False,
+            "options": {"temperature": 0.3, "num_predict": 200},
+        }).encode()
+
+        req = urllib.request.Request(
+            "http://localhost:11434/api/generate",
+            data    = payload,
+            headers = {"Content-Type": "application/json"},
+            method  = "POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            result = _json.loads(resp.read())
+        explanation = result["response"].strip()
+
+    except Exception as e:
+        explanation = f"AI explanation unavailable — make sure Ollama is running (`ollama serve`). Error: {e}"
+
+    return LLMExplainResponse(explanation=explanation)

@@ -284,9 +284,62 @@
               <p style="color:#f1f5f9;font-size:0.8rem;font-weight:600;margin-top:0.2rem;">${r.cause}</p>
               <p style="color:#64748b;font-size:0.8rem;margin-top:0.15rem;">${r.action}</p>
             </div>`).join('')}
+        </div>
+
+        <!-- AI Reasoning -->
+        <div id="aiSection" style="background:rgba(99,102,241,0.07);border:1px solid rgba(99,102,241,0.2);border-radius:0.75rem;padding:1rem;margin-top:0.75rem;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span>🤖</span>
+              <span style="color:#a5b4fc;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">AI Reasoning</span>
+              <span style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.3);font-size:0.6rem;padding:1px 6px;border-radius:4px;font-weight:600;">llama3.2:3b</span>
+            </div>
+            <button onclick="getAIExplanation('${c.customer_id}')" id="aiBtn"
+              style="background:#6366f1;color:#fff;font-size:0.7rem;font-weight:700;padding:4px 12px;border-radius:6px;border:none;cursor:pointer;">
+              Explain
+            </button>
+          </div>
+          <p id="aiModalText" style="color:#64748b;font-size:0.75rem;">Click Explain to get an AI-generated reasoning for this customer's risk.</p>
         </div>`;
 
       show('modal');
+    }
+
+    async function getAIExplanation(customerId) {
+      const c = allCustomers.find(x => x.customer_id === customerId);
+      if (!c) return;
+
+      const btn = document.getElementById('aiBtn');
+      const txt = document.getElementById('aiModalText');
+      btn.textContent = '…';
+      btn.disabled = true;
+      txt.style.color = '#64748b';
+      txt.textContent = 'Generating explanation…';
+
+      try {
+        const res = await fetch('/llm_explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            risk_level:        c.risk_level,
+            churn_probability: c.churn_probability,
+            churn_drivers:     c.recommendations.map(r => r.cause),
+            recommendations:   c.recommendations,
+            tenure:            c.tenure,
+            contract:          c.contract,
+            monthly_charges:   c.monthly_charges,
+          }),
+        });
+        const data = await res.json();
+        txt.style.color = '#c7d2fe';
+        txt.textContent = data.explanation;
+      } catch (e) {
+        txt.style.color = '#f87171';
+        txt.textContent = 'AI explanation unavailable — make sure Ollama is running.';
+      }
+
+      btn.textContent = 'Explain';
+      btn.disabled = false;
     }
 
     function closeModal() { hide('modal'); }
